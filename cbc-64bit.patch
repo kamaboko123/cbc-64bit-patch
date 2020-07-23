@@ -1,0 +1,87 @@
+diff --git a/cbc-1.0/net/loveruby/cflat/parser/Parser.jj b/cbc-1.0/net/loveruby/cflat/parser/Parser.jj
+index f6811b3..a73904a 100644
+--- a/cbc-1.0/net/loveruby/cflat/parser/Parser.jj
++++ b/cbc-1.0/net/loveruby/cflat/parser/Parser.jj
+@@ -567,7 +567,7 @@ Params params():
+       LOOKAHEAD(<VOID> ")")
+       t=<VOID>
+         {
+-            return new Params(location(t), new ArrayList<Parameter>());
++            return new Params(location(t), new ArrayList<net.loveruby.cflat.entity.Parameter>());
+         }
+     | params=fixedparams()
+             ["," "..." { params.acceptVarargs(); }]
+@@ -580,8 +580,8 @@ Params params():
+ // #@@range/fixedparams{
+ Params fixedparams():
+ {
+-    List<Parameter> params = new ArrayList<Parameter>();
+-    Parameter param, param1;
++    List<net.loveruby.cflat.entity.Parameter> params = new ArrayList<net.loveruby.cflat.entity.Parameter>();
++    net.loveruby.cflat.entity.Parameter param, param1;
+ }
+ {
+     param1=param() { params.add(param1); }
+@@ -593,13 +593,13 @@ Params fixedparams():
+ // #@@}
+ 
+ // #@@range/param{
+-Parameter param():
++net.loveruby.cflat.entity.Parameter param():
+ {
+     TypeNode t;
+     String n;
+ }
+ {
+-    t=type() n=name() { return new Parameter(t, n); }
++    t=type() n=name() { return new net.loveruby.cflat.entity.Parameter(t, n); }
+ }
+ // #@@}
+ 
+diff --git a/cbc-1.0/net/loveruby/cflat/sysdep/GNUAssembler.java b/cbc-1.0/net/loveruby/cflat/sysdep/GNUAssembler.java
+index 42a5a33..b95275b 100644
+--- a/cbc-1.0/net/loveruby/cflat/sysdep/GNUAssembler.java
++++ b/cbc-1.0/net/loveruby/cflat/sysdep/GNUAssembler.java
+@@ -17,6 +17,7 @@ class GNUAssembler implements Assembler {
+                             AssemblerOptions opts) throws IPCException {
+         List<String> cmd = new ArrayList<String>();
+         cmd.add("as");
++        cmd.add("--32");
+         cmd.addAll(opts.args);
+         cmd.add("-o");
+         cmd.add(destPath);
+diff --git a/cbc-1.0/net/loveruby/cflat/sysdep/GNULinker.java b/cbc-1.0/net/loveruby/cflat/sysdep/GNULinker.java
+index 0487d6b..a5620aa 100644
+--- a/cbc-1.0/net/loveruby/cflat/sysdep/GNULinker.java
++++ b/cbc-1.0/net/loveruby/cflat/sysdep/GNULinker.java
+@@ -10,10 +10,10 @@ class GNULinker implements Linker {
+     // #@@range/vars{
+     static final private String LINKER = "/usr/bin/ld";
+     static final private String DYNAMIC_LINKER      = "/lib/ld-linux.so.2";
+-    static final private String C_RUNTIME_INIT      = "/usr/lib/crti.o";
+-    static final private String C_RUNTIME_START     = "/usr/lib/crt1.o";
+-    static final private String C_RUNTIME_START_PIE = "/usr/lib/Scrt1.o";
+-    static final private String C_RUNTIME_FINI      = "/usr/lib/crtn.o";
++    static final private String C_RUNTIME_INIT      = "/usr/lib32/crti.o";
++    static final private String C_RUNTIME_START     = "/usr/lib32/crt1.o";
++    static final private String C_RUNTIME_START_PIE = "/usr/lib32/Scrt1.o";
++    static final private String C_RUNTIME_FINI      = "/usr/lib32/crtn.o";
+     // #@@}
+ 
+     ErrorHandler errorHandler;
+@@ -27,6 +27,7 @@ class GNULinker implements Linker {
+             String destPath, LinkerOptions opts) throws IPCException {
+         List<String> cmd = new ArrayList<String>();
+         cmd.add(LINKER);
++        cmd.add("-melf_i386");
+         cmd.add("-dynamic-linker");
+         cmd.add(DYNAMIC_LINKER);
+         if (opts.generatingPIE) {
+@@ -57,6 +58,7 @@ class GNULinker implements Linker {
+             String destPath, LinkerOptions opts) throws IPCException {
+         List<String> cmd = new ArrayList<String>();
+         cmd.add(LINKER);
++        cmd.add("-melf_i386");
+         cmd.add("-shared");
+         if (! opts.noStartFiles) {
+             cmd.add(C_RUNTIME_INIT);
